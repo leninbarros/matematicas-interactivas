@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explicador de Porcentajes 1% y 10%</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Fredoka', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .grid-square {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .highlight-pulse {
+            animation: pulse-scale 0.4s ease-out;
+        }
+        @keyframes pulse-scale {
+            0% { transform: scale(0.9); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+
+    <!-- Contenedor Principal de la Aplicación -->
+    <main class="w-full max-w-4xl bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-10 flex flex-col items-center gap-8">
+        
+        <!-- Título -->
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl md:text-4xl font-black font-display text-blue-700 tracking-wide flex items-center justify-center gap-3">
+                <i class="fa-solid fa-chart-pie text-blue-500"></i>
+                Visualizador de Porcentajes
+            </h1>
+            <p class="text-sm md:text-base text-slate-500 font-medium">Cuadrícula de 100 partes iguales para enseñar el 1% y el 10%</p>
+        </header>
+
+        <!-- CONTROLES SUPERIORES: Ingreso del Total y Botones -->
+        <section class="w-full bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6 shadow-inner">
+            
+            <!-- Casillero para ingresar el Total -->
+            <div class="flex flex-col items-center md:items-start gap-1">
+                <label for="total-input" class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <i class="fa-solid fa-calculator text-blue-600"></i> Ingresa el Valor Total (100%):
+                </label>
+                <div class="flex items-center gap-2">
+                    <input id="total-input" type="number" value="500" min="1" step="any"
+                        class="w-40 bg-white border-2 border-blue-400 rounded-xl px-4 py-2 text-2xl font-black font-display text-blue-700 text-center shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all">
+                </div>
+            </div>
+
+            <!-- Botones de Acción principales -->
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                
+                <!-- Botón 1% -->
+                <button onclick="calculatePercentage(1)" 
+                    class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black font-display px-6 py-3 rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-lg">
+                    <i class="fa-solid fa-square"></i>
+                    Calcular 1%
+                </button>
+
+                <!-- Botón 10% -->
+                <button onclick="calculatePercentage(10)" 
+                    class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black font-display px-6 py-3 rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-lg">
+                    <i class="fa-solid fa-table-cells"></i>
+                    Calcular 10%
+                </button>
+
+                <!-- Botón Reiniciar -->
+                <button onclick="resetGrid()" 
+                    title="Reiniciar cuadrícula"
+                    class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold p-3.5 rounded-2xl transition-all active:scale-95 text-lg">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- PANEL CENTRAL: CUADRÍCULA Y RESULTADOS -->
+        <section class="w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            
+            <!-- Lado Izquierdo: Cuadrícula 10x10 -->
+            <div class="md:col-span-7 flex flex-col items-center">
+                <div class="relative w-full max-w-[340px] md:max-w-[380px] aspect-square bg-slate-200 p-3 rounded-2xl shadow-inner border-2 border-slate-300">
+                    <div id="grid-container" class="grid grid-cols-10 grid-rows-10 gap-1 w-full h-full">
+                        <!-- Cuadritos generados dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lado Derecho: Explicación del Resultado -->
+            <div class="md:col-span-5 flex flex-col gap-4">
+                
+                <!-- Tarjeta de Resultado Grande -->
+                <div id="result-card" class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-6 rounded-2xl shadow-sm space-y-3">
+                    <span id="result-badge" class="px-3 py-1 bg-blue-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-full inline-block font-display">
+                        Sin selección
+                    </span>
+                    
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-slate-500 uppercase block">Valor del área pintada:</span>
+                        <div id="result-value" class="text-4xl md:text-5xl font-black font-display text-slate-800">
+                            --
+                        </div>
+                    </div>
+
+                    <p id="result-explanation" class="text-xs md:text-sm text-slate-600 leading-relaxed font-medium">
+                        Haz clic en <b>"Calcular 1%"</b> o <b>"Calcular 10%"</b> para pintar la cuadrícula y ver su valor exacto.
+                    </p>
+                </div>
+
+                <!-- Detalle Operatorio Paso a Paso -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wide block">
+                        <i class="fa-solid fa-square-root-variable text-blue-600"></i> Fórmula aplicada:
+                    </span>
+                    <div id="formula-box" class="text-sm font-mono font-bold text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 text-center">
+                        Total ÷ 100 = Valor de 1 cuadro
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-6 text-xs text-slate-400 font-medium">
+        Herramienta interactiva para la enseñanza de porcentajes en clase
+    </footer>
+
+    <!-- JAVASCRIPT LÓGICA -->
+    <script>
+        let currentTotal = 500;
+        let activeCount = 0;
+
+        const gridContainer = document.getElementById('grid-container');
+        const totalInput = document.getElementById('total-input');
+        const resultBadge = document.getElementById('result-badge');
+        const resultValue = document.getElementById('result-value');
+        const resultExplanation = document.getElementById('result-explanation');
+        const formulaBox = document.getElementById('formula-box');
+
+        // Construir la cuadrícula de 100 cuadrados al cargar
+        function initGrid() {
+            gridContainer.innerHTML = '';
+            for (let i = 1; i <= 100; i++) {
+                const sq = document.createElement('div');
+                sq.id = `sq-${i}`;
+                sq.className = 'grid-square rounded-[3px] bg-white border border-slate-300 flex items-center justify-center font-bold text-[9px] text-white select-none';
+                gridContainer.appendChild(sq);
+            }
+        }
+
+        // Obtener el valor del Total desde el input
+        function getTotal() {
+            const val = parseFloat(totalInput.value);
+            return isNaN(val) || val <= 0 ? 0 : val;
+        }
+
+        // Calcular y pintar según el botón presionado (1 o 10)
+        function calculatePercentage(percent) {
+            currentTotal = getTotal();
+            activeCount = percent;
+            
+            const valueForOnePercent = currentTotal / 100;
+            const totalPaintedValue = valueForOnePercent * percent;
+
+            // Formatear números para pantalla limpia (sin demasiados decimales flotantes)
+            const formattedOne = Number.isInteger(valueForOnePercent) ? valueForOnePercent : valueForOnePercent.toFixed(2);
+            const formattedTotal = Number.isInteger(totalPaintedValue) ? totalPaintedValue : totalPaintedValue.toFixed(2);
+
+            // Actualizar Cuadrícula
+            for (let i = 1; i <= 100; i++) {
+                const sq = document.getElementById(`sq-${i}`);
+                if (i <= percent) {
+                    if (percent === 1) {
+                        sq.className = 'grid-square rounded-[3px] bg-amber-500 border border-amber-600 flex items-center justify-center font-extrabold text-[10px] md:text-xs text-white shadow-md highlight-pulse';
+                        sq.textContent = formattedOne; // Mostrar el valor dentro de la casilla
+                    } else {
+                        sq.className = 'grid-square rounded-[3px] bg-blue-600 border border-blue-700 flex items-center justify-center font-bold text-[8px] md:text-[9px] text-white shadow-sm highlight-pulse';
+                        sq.textContent = formattedOne; // Mostrar el valor unitario en cada una
+                    }
+                } else {
+                    sq.className = 'grid-square rounded-[3px] bg-white border border-slate-300 flex items-center justify-center font-bold text-[9px] text-white';
+                    sq.textContent = '';
+                }
+            }
+
+            // Actualizar Textos y Explicación
+            if (percent === 1) {
+                resultBadge.className = "px-3 py-1 bg-amber-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-full inline-block font-display";
+                resultBadge.textContent = "1% Calculado (1 Cuadro)";
+                resultValue.className = "text-4xl md:text-5xl font-black font-display text-amber-600";
+                resultValue.textContent = formattedTotal;
+                
+                resultExplanation.innerHTML = `
+                    Al dividir el Total de <b>${currentTotal}</b> entre 100 partes iguales, 
+                    <b>1 solo cuadro (el 1%)</b> equivale exactamente a <span class="text-amber-600 font-bold">${formattedTotal}</span>.
+                `;
+
+                formulaBox.innerHTML = `${currentTotal} ÷ 100 = <span class="text-amber-600">${formattedTotal}</span>`;
+            } else if (percent === 10) {
+                resultBadge.className = "px-3 py-1 bg-blue-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-full inline-block font-display";
+                resultBadge.textContent = "10% Calculado (10 Cuadros)";
+                resultValue.className = "text-4xl md:text-5xl font-black font-display text-blue-700";
+                resultValue.textContent = formattedTotal;
+
+                resultExplanation.innerHTML = `
+                    Pintamos <b>10 cuadros de 100</b>. Si cada cuadro vale <b>${formattedOne}</b>, 
+                    el conjunto de los 10 cuadros (el 10%) suma un valor total de <span class="text-blue-700 font-bold">${formattedTotal}</span>.
+                `;
+
+                formulaBox.innerHTML = `(${currentTotal} ÷ 100) × 10 = <span class="text-blue-700">${formattedTotal}</span>`;
+            }
+        }
+
+        // Limpiar la cuadrícula
+        function resetGrid() {
+            for (let i = 1; i <= 100; i++) {
+                const sq = document.getElementById(`sq-${i}`);
+                sq.className = 'grid-square rounded-[3px] bg-white border border-slate-300 flex items-center justify-center font-bold text-[9px] text-white';
+                sq.textContent = '';
+            }
+            resultBadge.className = "px-3 py-1 bg-slate-400 text-white font-extrabold text-xs uppercase tracking-wider rounded-full inline-block font-display";
+            resultBadge.textContent = "Sin selección";
+            resultValue.className = "text-4xl md:text-5xl font-black font-display text-slate-800";
+            resultValue.textContent = "--";
+            resultExplanation.innerHTML = 'Haz clic en <b>"Calcular 1%"</b> o <b>"Calcular 10%"</b> para pintar la cuadrícula y ver su valor exacto.';
+            formulaBox.textContent = 'Total ÷ 100 = Valor de 1 cuadro';
+        }
+
+        // Escuchar cambios en el input del Total para actualizar en tiempo real si ya había selección
+        totalInput.addEventListener('input', () => {
+            if (activeCount > 0) {
+                calculatePercentage(activeCount);
+            }
+        });
+
+        // Inicializar al cargar
+        window.addEventListener('DOMContentLoaded', () => {
+            initGrid();
+        });
+    </script>
+</body>
+</html>
